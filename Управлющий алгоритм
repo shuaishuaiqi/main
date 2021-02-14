@@ -1,0 +1,320 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+import warnings
+warnings.filterwarnings('ignore')
+import logging
+import pyaudio
+import os, sys, time
+import speech_recognition as sr
+sys.path.insert(0, '/home/bitwanghaili/catkin_ws/src/kuka_controller')
+from ctypes import *
+from pocketsphinx.pocketsphinx import *
+from tempfile import TemporaryFile
+from sphinxbase.sphinxbase import *
+from pygame import mixer
+from client_lib import *
+my_client = kuka_iiwa_ros_client() 
+my_client = kuka_iiwa_ros_client()
+while (not my_client.isready): pass
+my_client.send_command('setTool tool1')
+my_client.send_command('setJointAcceleration 1.0')
+my_client.send_command('setJointVelocity 1.0') 
+my_client.send_command('setJointJerk 1.0')     
+my_client.send_command('setCartVelocity 200')
+#my_client.send_command('resetCollision')
+mixer.init()
+def InitTTS():
+    print('Инициализация системы синтеза речи ......')
+    TTS = "/home/bitwanghaili/catkin_ws/src/kuka_controller/ControRobot/TTS"
+    Text1 = os.path.join(TTS, "TEXT1.mp3")
+    Text2 = os.path.join(TTS, "TEXT2.mp3")
+    Text3 = os.path.join(TTS, "TEXT3.mp3")
+    Text4 = os.path.join(TTS, "TEXT4.mp3")
+    Text5 = os.path.join(TTS, "TEXT5.mp3")
+    Text6 = os.path.join(TTS, "TEXT6.mp3")
+    Text7 = os.path.join(TTS, "TEXT7.mp3")
+    Text8 = os.path.join(TTS, "TEXT8.mp3")
+    Text9 = os.path.join(TTS, "TEXT9.mp3")
+    Text10 = os.path.join(TTS, "TEXT10.mp3")
+    Text11 = os.path.join(TTS, "TEXT11.mp3")
+    Text12 = os.path.join(TTS, "TEXT12.mp3")
+    Text13 = os.path.join(TTS, "TEXT13.mp3")
+    Text14 = os.path.join(TTS, "TEXT14.mp3")
+    Text15 = os.path.join(TTS, "TEXT15.mp3")
+    Text16 = os.path.join(TTS, "TEXT16.mp3")
+    Text17 = os.path.join(TTS, "TEXT17.mp3")
+    Text18 = os.path.join(TTS, "TEXT18.mp3")
+    Text19 = os.path.join(TTS, "TEXT19.mp3")
+    Text20 = os.path.join(TTS, "TEXT20.mp3")
+    Text21 = os.path.join(TTS, "TEXT21.mp3")
+    Text22 = os.path.join(TTS, "TEXT22.mp3")
+    Text23 = os.path.join(TTS, "TEXT23.mp3")
+    Text24 = os.path.join(TTS, "TEXT24.mp3")
+    Text25 = os.path.join(TTS, "TEXT25.mp3")
+    Text26 = os.path.join(TTS, "TEXT26.mp3")
+    Text27 = os.path.join(TTS, "TEXT27.mp3")
+    Text28 = os.path.join(TTS, "TEXT28.mp3")
+    Text29 = os.path.join(TTS, "TEXT29.mp3")
+    Text30 = os.path.join(TTS, "TEXT30.mp3")
+    Text31 = os.path.join(TTS, "TEXT31.mp3")
+    Text32 = os.path.join(TTS, "TEXT32.mp3")
+    Text33 = os.path.join(TTS, "TEXT33.mp3")
+    Text34 = os.path.join(TTS, "TEXT34.mp3")
+    Text35 = os.path.join(TTS, "TEXT35.mp3")
+    Text36 = os.path.join(TTS, "TEXT36.mp3")
+    Text37 = os.path.join(TTS, "TEXT37.mp3")
+    Text38 = os.path.join(TTS, "TEXT38.mp3")
+    Text39 = os.path.join(TTS, "TEXT39.mp3")    
+    Text=[0,Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8,Text9,Text10,
+          Text11,Text12,Text13,Text14,Text15,Text16,Text17,Text18,Text19,Text20,
+          Text21,Text22,Text23,Text24,Text25,Text26,Text27,Text28,Text29,Text30,
+          Text31,Text32,Text33,Text34,Text35,Text36,Text37,Text38,Text39]
+    PlayMp3(Text[3])
+    print('Инициализация системы синтеза речи выполнена')
+    return(Text)
+def py_error_handler(filename, line, function, err, fmt):
+    pass
+def InitSTT(Text):
+    print("Инициализация системы распознания речи.....")
+    PlayMp3(Text[4])
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    model_dir = "/home/bitwanghaili/catkin_ws/src/kuka_controller/ControRobot/ASR/CMUSphinx/MyProject"
+    config = Decoder.default_config()
+    config.set_string('-logfn', '/dev/null')
+    hmm = os.path.join(model_dir, "MyProject_AM")
+    lm = os.path.join(model_dir, "lang.lm")
+    dic = os.path.join(model_dir, "diction.dic")
+    sys.stderr = open(os.path.join(script_dir, "stderr.log"), "a")
+    ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
+    c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
+    asound = cdll.LoadLibrary('libasound.so')
+    asound.snd_lib_error_set_handler(c_error_handler)
+    config.set_string('-hmm', hmm)
+    config.set_string('-lm', lm)
+    config.set_string('-dict', dic)
+    decoder = Decoder(config)
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=1024)
+    print("Инициализация системы распознания речи выполнена")
+    return(decoder, stream)
+def InitSystem(Text):
+    print("Запуск системы ......")
+    PlayMp3(Text[1])
+    print("Инициализация системы ......")
+    PlayMp3(Text[2])
+    print("Инициализация системы выполнена")
+def InitControlRobot(Text):
+    robot = RDK.Item('', ITEM_TYPE_ROBOT)
+    if not robot.Valid():
+        print("No robot in the station. Load a robot first, then run this program.")
+        pause(5)
+        raise Exception("No robot in the station!")
+    print('Робот: %s' % robot.Name())
+    print("Проверка подключения робота...")
+    PlayMp3(Text[19])
+    if os.system('ping 172.31.1.147 -c 2'):
+        print("Реальный робот не подключен, запуск моделирования робота!")
+        PlayMp3(Text[17])
+    else:
+        MoveXYZABCptp(my_client, [300, 0, 650, -180, 0, -180])
+        print("Робот KUKA подключен!")
+        PlayMp3(Text[18])
+def check_in_string(string, words):
+    if all(word in string for word in words):
+        return True
+    return False
+def STT(decoder,stream):
+    print("Распознание речи идёт")
+    stream.start_stream()
+    in_speech_bf = True
+    decoder.start_utt()
+    while True:
+        buf = stream.read(1024)
+        if buf:
+            decoder.process_raw(buf, False, False)
+            if decoder.get_in_speech():
+                sys.stdout.write('.')
+                sys.stdout.flush()
+            if decoder.get_in_speech() != in_speech_bf:
+                in_speech_bf = decoder.get_in_speech()
+                if not in_speech_bf:
+                    decoder.end_utt()
+                    try:
+                        if decoder.hyp().hypstr != '':
+                            print('\nВы cказали:%s'%decoder.hyp().hypstr)
+                            stream.stop_stream()
+                            time.sleep(0.5)
+                            return(decoder.hyp().hypstr)
+                    except AttributeError:
+                        pass
+                    decoder.start_utt()
+        else:
+            break
+def PlayMp3(Text):
+    mixer.music.load(Text)
+    mixer.music.play()
+    while mixer.music.get_busy():
+        time.sleep(0.1)
+def Delay(second):
+    for n in range(0,second):
+        print(str(second-n)+" S")
+        time.sleep(1)
+def CheckObject(x,y,Text):
+    Xmin=250
+    Xmax=700
+    Ymin=-250
+    Ymax=250
+    while True:
+        if (x>Xmax)or(x<Xmin)or(y>Ymax)or(y<Ymin):
+            print("Медицинские инструменты не находятся в указанное место!")
+            #PlayMp3(Text[22])
+            print("Поместите инструмент в зеленую зону!")
+            return(False)
+        else:
+            print("Медицинский инструмент находится в указанное место!")
+            return(True)
+def CheckAllObject(Text):
+    MoveXYZABCptp(my_client, [300, 0, 650, -170, 0, -180])
+    flag1 = False
+    flag2 = False
+    flag3 = False
+    flag4 = False
+    flag5 = False
+    while flag1 == False or flag2 == False or flag3 == False or flag4 == False or flag5 == False :
+        print("Проверка положений медицинских инструментов!")
+        PlayMp3(Text[21])
+        X1,Y1,X2,Y2,X3,Y3,X4,Y4,X5,Y5=Check_object()
+        flag1 = False
+        flag2 = False
+        flag3 = False
+        flag4 = False
+        flag5 = False
+        if flag1 == False:
+            print("Проверка положения медицинского инструмента один!")
+            flag1 = CheckObject(X1,Y1,Text)
+            if flag1 == False:
+                print("Поместите инструмента один в зеленую зону")
+                PlayMp3(Text[23])
+                for mi in range(2):
+                    time.sleep(1)
+                    print(str(mi+1)+"s")
+        if flag2 == False:    
+            print("Проверка положения медицинского инструмента два!")
+            #PlayMp3(Text[30])
+            flag2 = CheckObject(X2,Y2,Text)
+            if flag2 == False:
+                print("Поместите инструмента два в зеленую зону")
+                PlayMp3(Text[24])
+                for mi in range(2):
+                    time.sleep(1)
+                    print(str(mi+1)+"s")
+        if flag3 == False:
+            print("Проверка положения медицинского инструмента три!")
+            flag3 = CheckObject(X3,Y3,Text)
+            if flag3 == False:
+                print("Поместите инструмента три в зеленую зону")
+                PlayMp3(Text[25])
+                for mi in range(2):
+                    time.sleep(1)
+                    print(str(mi+1)+"s")
+        if flag4 == False:
+            print("Проверка положения медицинского инструмента четыре!")
+            flag4 = CheckObject(X4,Y4,Text)
+            if flag4 == False:
+                print("Поместите инструмента четыре в зеленую зону")
+                PlayMp3(Text[26])
+                for mi in range(2):
+                    time.sleep(1)
+                    print(str(mi+1)+"s")
+        if flag5 == False:
+            print("Проверка положения медицинского инструмента пяти!")
+            flag5 = CheckObject(X5,Y5,Text)
+            if flag5 == False:
+                print("Поместите инструмента пяти в зеленую зону")
+                PlayMp3(Text[27])
+                for mi in range(2):
+                    time.sleep(1)
+                    print(str(mi+1)+"s")
+    print("Медицинские инструменты находятся в указанное место!")
+def ControlRobot(decoder,stream,Text):
+    while True:
+        print("Введите голосовую команду!")
+        PlayMp3(Text[15])
+        time.sleep(0.5)
+        string=STT(decoder,stream)
+        if check_in_string(string, ('один','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            ZhuaQuWuTi(my_client, 1, Text)
+            print("Медицинские инструменты готовы!")
+            PlayMp3(Text[11])
+        elif check_in_string(string, ('два','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            ZhuaQuWuTi(my_client, 2, Text)
+            print("Медицинские инструменты готовы!")
+            PlayMp3(Text[11])
+        elif check_in_string(string, ('три','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            ZhuaQuWuTi(my_client, 3, Text)
+            print("Медицинские инструменты готовы!")
+            PlayMp3(Text[11])
+        elif check_in_string(string, ('четыре','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            ZhuaQuWuTi(my_client, 4, Text)
+            print("Медицинские инструменты готовы!")
+            PlayMp3(Text[11])
+        elif check_in_string(string, ('пять','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            ZhuaQuWuTi(my_client, 5, Text)
+            print("Медицинские инструменты готовы!")
+            PlayMp3(Text[11])
+        elif check_in_string(string, ('убрать','инструмент')):
+            print("Операция выполняется")
+            PlayMp3(Text[10])
+            CheckAllObject(Text)
+            #RemoveObject(my_client,Text)
+            print("Медицинские инструменты убраны!")
+            PlayMp3(Text[12]) 
+        elif check_in_string(string, ('что','ты', 'умеешь')):
+            print("Я робот - ассистент хирурга и могу подать и принимать медицинские" +
+                  "инструменты с помощью технического зрения и представить информации о пациенте")
+            PlayMp3(Text[37])
+        elif check_in_string(string, ('расговаривать','о','себе')):
+            print("Привет, Я робот - ассистент хирурга, живу в московском государственном"+
+                  "техническом университете имени Баумана на кафедре СМ-7")
+            PlayMp3(Text[35])
+        elif check_in_string(string, ('как','ты','работаешь')):
+            print("я работаю с помощью искусственного интеллекта")
+            PlayMp3(Text[36])
+        elif check_in_string(string, ('какие','комады','распознавать')):
+            print("ты можешь говорить поместить желаемые инструмент в руке")
+            PlayMp3(Text[38])
+        else:
+            print("Вас не понял, пожалуйста, повторно вводить голосовые команды")
+            PlayMp3(Text[9])
+class Statement:
+    def __init__(self, dict):
+        self.confidence = dict['confidence']
+        self.text = dict['transcript'].lower()
+    def __repr__(self):
+        return "[{}] {}".format(self.confidence, self.text)
+    def __str__(self):
+        return self.text
+    def __gt__(self, other):
+        return self.confidence > other.confidence
+Text=InitTTS()
+InitSystem(Text)
+print("Инициализация системы обработки изображений")
+PlayMp3(Text[34])
+from ContorRobot import *
+decoder, stream = InitSTT(Text)
+InitControlRobot(Text)
+print("Добро пожаловать")
+PlayMp3(Text[5])
+CheckAllObject(Text)
+while True:
+ControlRobot(decoder,stream,Text)
